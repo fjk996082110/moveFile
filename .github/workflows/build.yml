@@ -24,8 +24,8 @@ jobs:
       - name: Build executable
         run: pkg index.js --targets node14-win-x64
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Artifact[osx-x64]
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: moveFiles-win
           path: ./moveFiles-win.exe
