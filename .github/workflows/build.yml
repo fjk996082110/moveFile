@@ -1,0 +1,31 @@
+name: Build EXE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
+      - name: Install pkg
+        run: npm install -g pkg
+
+      - name: Build executable
+        run: pkg index.js --targets node14-win-x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: moveFiles-win
+          path: ./moveFiles-win.exe
