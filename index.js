@@ -2,61 +2,53 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// 使用 readline 接受用户输入
+// 创建 readline 接口
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-// 获取用户输入的源目录和关键字
-rl.question('请输入源目录路径: ', (sourceDirectory) => {
-  rl.question('请输入要查找的文件名关键字: ', (targetKeyword) => {
-    rl.question('请输入目标目录路径: ', (targetDirectory) => {
-
-      // 确保目录路径存在
-      if (!fs.existsSync(sourceDirectory)) {
-        console.log('源目录不存在，请检查路径。');
+// 提示用户输入源目录
+rl.question('请输入源目录路径: ', (sourceDir) => {
+  // 提示用户输入目标目录
+  rl.question('请输入目标目录路径: ', (targetDir) => {
+    // 读取源目录中的文件和文件夹
+    fs.readdir(sourceDir, (err, files) => {
+      if (err) {
+        console.error('读取源目录失败:', err);
         rl.close();
         return;
       }
 
-      // const targetDirectory = path.join(sourceDirectory, targetKeyword);
+      // 遍历所有文件
+      files.forEach(file => {
+        // 检查文件是否是 PDF
+        if (file.endsWith('.pdf')) {
+          // 获取人名
+          const name = file.split('_').pop().replace('.pdf', '');
 
-      // 创建目标文件夹（如果不存在）
-      if (!fs.existsSync(targetDirectory)) {
-        fs.mkdirSync(targetDirectory);
-      }
+          // 构建目标文件夹路径
+          const targetFolder = path.join(targetDir, `立案材料_${name}`);
 
-      // 读取源目录中的所有文件
-      fs.readdir(sourceDirectory, (err, files) => {
-        if (err) {
-          console.error('无法读取目录内容:', err);
-          rl.close();
-          return;
-        }
-
-        files.forEach((file) => {
-          const sourcePath = path.join(sourceDirectory, file);
-
-          // 检查是否为PDF文件，并符合“张三_”开头或“_张三”结尾
-          if (file.endsWith('.pdf') && (file.includes(`${targetKeyword}_`) || file.endsWith(`_${targetKeyword}.pdf`))) {
-            const targetPath = path.join(targetDirectory, file);
-
+          // 检查目标文件夹是否存在
+          if (fs.existsSync(targetFolder)) {
             // 移动文件
-            fs.rename(sourcePath, targetPath, (err) => {
+            const sourceFilePath = path.join(sourceDir, file);
+            const targetFilePath = path.join(targetFolder, file);
+
+            fs.rename(sourceFilePath, targetFilePath, (err) => {
               if (err) {
-                console.error(`无法移动文件 ${file}:`, err);
+                console.error(`移动文件失败: ${file} - ${err}`);
               } else {
-                console.log(`已移动文件: ${file} 到 ${targetDirectory}`);
+                console.log(`已移动: ${file} 到 ${targetFolder}`);
               }
             });
+          } else {
+            console.log(`目标文件夹不存在: ${targetFolder}`);
           }
-        });
-
-        console.log('操作完成。');
-        rl.close();
+        }
       });
-    })
-
+      rl.close();
+    });
   });
 });
